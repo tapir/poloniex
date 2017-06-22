@@ -165,6 +165,7 @@ func WithPostOnly() func(*OrderOption) {
 type Receipt struct {
 	OrderNumber int64
 	Rate        float64
+	Total       float64
 	Trades      []struct {
 		Amount, Total float64
 		Type, TradeID string
@@ -549,6 +550,7 @@ func (b buySellResponse) asReceipt() (Receipt, error) {
 		err     error
 		amounts float64
 		prices  float64
+		totals  float64
 	)
 
 	r.OrderNumber, err = strconv.ParseInt(b.OrderNumber, 10, 64)
@@ -570,6 +572,7 @@ func (b buySellResponse) asReceipt() (Receipt, error) {
 		if err != nil {
 			return r, err
 		}
+		totals += total
 
 		date, err := time.Parse(DateFormat, trade.Date)
 		if err != nil {
@@ -589,6 +592,7 @@ func (b buySellResponse) asReceipt() (Receipt, error) {
 		})
 	}
 
+	r.Total = totals
 	r.Rate = prices / amounts
 	return r, err
 }
