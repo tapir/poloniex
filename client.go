@@ -164,6 +164,7 @@ func WithPostOnly() func(*OrderOption) {
 // Receipt is an order receipt.
 type Receipt struct {
 	OrderNumber int64
+	Rate        float64
 	Trades      []struct {
 		Amount, Total float64
 		Type, TradeID string
@@ -544,7 +545,11 @@ type buySellResponse struct {
 
 func (b buySellResponse) asReceipt() (Receipt, error) {
 	r := Receipt{}
-	var err error
+	var (
+		err     error
+		amounts float64
+		prices  float64
+	)
 
 	r.OrderNumber, err = strconv.ParseInt(b.OrderNumber, 10, 64)
 
@@ -553,6 +558,13 @@ func (b buySellResponse) asReceipt() (Receipt, error) {
 		if err != nil {
 			return r, err
 		}
+		amounts += amt
+
+		rate, err := strconv.ParseFloat(trade.Rate, 64)
+		if err != nil {
+			return r, err
+		}
+		prices += rate * amt
 
 		total, err := strconv.ParseFloat(trade.Total, 64)
 		if err != nil {
@@ -577,6 +589,7 @@ func (b buySellResponse) asReceipt() (Receipt, error) {
 		})
 	}
 
+	r.Rate = prices / amounts
 	return r, err
 }
 
