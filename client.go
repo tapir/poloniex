@@ -305,7 +305,7 @@ type OpenOrder struct {
 }
 
 func (c *Client) OpenOrderCount(pair string) (int, error) {
-	var params url.Values
+	params := url.Values{}
 
 	params.Set("currencyPair", pair)
 
