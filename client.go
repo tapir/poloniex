@@ -296,6 +296,40 @@ func (c *Client) Ticker(ctx context.Context) (<-chan *Symbol, error) {
 	return symbols, nil
 }
 
+type OpenOrder struct {
+	Number string `json:"orderNumber"`
+	Type   string `json:"type"`
+	Rate   string `json:"rate"`
+	Amount string `json:"amount"`
+	Total  string `json:"total"`
+}
+
+func (c *Client) OpenOrderCount(pair string) (int, error) {
+	var params url.Values
+
+	params.Set("currencyPair", pair)
+
+	response, err := post(c.httpClient, "returnOpenOrders", c.apiKey, c.apiSecret, params)
+	if err != nil {
+		return -1, err
+	}
+
+	var apiError apiError
+
+	_ = json.Unmarshal(response, &apiError)
+	if apiError.Error != "" {
+		return -1, errors.New(apiError.Error)
+	}
+
+	var orders []OpenOrder
+	err = json.Unmarshal(response, &orders)
+	if err != nil {
+		return -1, err
+	}
+
+	return len(orders), nil
+}
+
 type apiError struct {
 	Error string `json:"error"`
 }
